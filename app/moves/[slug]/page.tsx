@@ -8,7 +8,6 @@ interface Props {
   params: { slug: string }
 }
 
-export const dynamic = 'force-dynamic'
 
 export default async function MovePage({ params }: Props) {
   const move = await prisma.move.findUnique({
