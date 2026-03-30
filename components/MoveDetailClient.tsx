@@ -56,7 +56,7 @@ export function MoveDetailClient({ move }: { move: Move }) {
     } finally {
       setLoading(false)
     }
-  }, [session, move.name])
+  }, [session, move.name, move.id, hasApiKey])
 
   useEffect(() => { fetchVotes() }, [fetchVotes])
   useEffect(() => { if (session || hasApiKey) fetchVideos() }, [session, hasApiKey, fetchVideos])

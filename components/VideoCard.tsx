@@ -42,6 +42,7 @@ export function VideoCard({
       setPendingVote(false)
       onVote(video.videoId, video.title)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, pendingVote])
 
   const handleVote = async () => {
