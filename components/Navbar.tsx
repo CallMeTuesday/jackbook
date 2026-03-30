@@ -85,6 +85,11 @@ export function Navbar({ search: externalSearch, onSearchChange }: NavbarProps) 
             <DropdownMenuItem className="text-zinc-400 text-xs pointer-events-none">
               {session.user?.name}
             </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/settings" className="text-zinc-300 hover:text-white cursor-pointer">
+                Settings
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => signOut({ callbackUrl: '/' })}
               className="text-zinc-300 hover:text-white cursor-pointer"

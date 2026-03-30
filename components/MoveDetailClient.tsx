@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { VideoCard } from './VideoCard'
 import { YouTubeVideo } from '@/lib/youtube'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { SubmitMoveSection } from './SubmitMoveSection'
 
 interface Move {
   id: string
@@ -158,6 +159,8 @@ export function MoveDetailClient({ move }: { move: Move }) {
           )}
         </>
       )}
+
+      <SubmitMoveSection moveName={move.name} moveId={move.id} />
     </div>
   )
 }

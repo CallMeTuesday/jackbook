@@ -13,14 +13,15 @@ datasource db {
 }
 
 model Move {
-  id        String      @id @default(cuid())
-  name      String      @unique
-  slug      String      @unique
-  featured  Boolean     @default(false)
-  thumbnail String?
-  createdAt DateTime    @default(now())
-  votes     Vote[]
-  videoCache VideoCache?
+  id          String       @id @default(cuid())
+  name        String       @unique
+  slug        String       @unique
+  featured    Boolean      @default(false)
+  thumbnail   String?
+  createdAt   DateTime     @default(now())
+  votes       Vote[]
+  videoCache  VideoCache?
+  submissions Submission[]
 }
 
 model VideoCache {
@@ -46,16 +47,34 @@ model Vote {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  stripeCustomerId String?
-  subscriptionStatus String? @default("free")
-  accounts      Account[]
-  sessions      Session[]
-  votes         Vote[]
+  id                 String       @id @default(cuid())
+  name               String?
+  email              String?      @unique
+  emailVerified      DateTime?
+  image              String?
+  username           String?      @unique
+  profilePublic      Boolean      @default(true)
+  stripeCustomerId   String?
+  subscriptionStatus String?      @default("free")
+  accounts           Account[]
+  sessions           Session[]
+  votes              Vote[]
+  submissions        Submission[]
+}
+
+model Submission {
+  id        String   @id @default(cuid())
+  userId    String
+  moveId    String?
+  moveName  String
+  videoUrl  String
+  videoId   String
+  note      String?
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+
+  user User  @relation(fields: [userId], references: [id])
+  move Move? @relation(fields: [moveId], references: [id])
 }
 
 model Account {
