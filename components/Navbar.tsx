@@ -91,7 +91,7 @@ export function Navbar({ search: externalSearch, onSearchChange }: NavbarProps) 
             <DropdownMenuItem className="text-zinc-400 text-xs pointer-events-none">
               {session.user?.name}
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => signOut()} className="text-zinc-300 hover:text-white cursor-pointer">
+            <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/' })} className="text-zinc-300 hover:text-white cursor-pointer">
               Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -121,7 +121,7 @@ export function Navbar({ search: externalSearch, onSearchChange }: NavbarProps) 
           </Button>
         )
       ) : (
-        <Button onClick={() => signIn('google')} variant="ghost" size="sm"
+        <Button onClick={() => signIn('google', { callbackUrl: '/' })} variant="ghost" size="sm"
           className="h-7 text-xs text-zinc-400 hover:text-zinc-200 px-2 whitespace-nowrap">
           Sign in
         </Button>
