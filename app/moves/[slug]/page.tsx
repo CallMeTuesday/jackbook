@@ -8,10 +8,7 @@ interface Props {
   params: { slug: string }
 }
 
-export async function generateStaticParams() {
-  const moves = await prisma.move.findMany({ select: { slug: true } })
-  return moves.map((m) => ({ slug: m.slug }))
-}
+export const dynamic = 'force-dynamic'
 
 export default async function MovePage({ params }: Props) {
   const move = await prisma.move.findUnique({
