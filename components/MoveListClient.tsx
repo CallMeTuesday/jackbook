@@ -182,7 +182,7 @@ export function MoveListClient({ moves, externalSearch = '' }: MoveListClientPro
       <div className="flex items-center gap-2 mb-5 text-zinc-400">
         <Search className="h-4 w-4 flex-shrink-0" />
         <p className="text-sm">
-          YouTube results for <span className="text-zinc-200 font-medium">"{externalSearch}"</span>
+          YouTube results for <span className="text-zinc-200 font-medium">&ldquo;{externalSearch}&rdquo;</span>
         </p>
       </div>
 
