@@ -1,7 +1,6 @@
 import NextAuth from 'next-auth'
 import Google from 'next-auth/providers/google'
 import Credentials from 'next-auth/providers/credentials'
-import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from './db'
 
 const isDev = process.env.NODE_ENV === 'development'
@@ -44,12 +43,27 @@ if (isDev) {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET,
-  adapter: PrismaAdapter(prisma),
+  trustHost: true,
   session: { strategy: 'jwt' },
   providers,
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) token.sub = user.id
+    async jwt({ token, user, profile }) {
+      if (user?.email) {
+        // Upsert user in DB on every new sign-in so we have a stable ID for votes
+        const dbUser = await prisma.user.upsert({
+          where: { email: user.email },
+          update: {
+            name: user.name ?? null,
+            image: (profile as any)?.picture ?? user.image ?? null,
+          },
+          create: {
+            email: user.email,
+            name: user.name ?? null,
+            image: (profile as any)?.picture ?? user.image ?? null,
+          },
+        })
+        token.sub = dbUser.id
+      }
       return token
     },
     async session({ session, token }) {
