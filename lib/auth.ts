@@ -48,21 +48,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers,
   callbacks: {
     async jwt({ token, user, profile }) {
-      if (user?.email) {
-        // Upsert user in DB on every new sign-in so we have a stable ID for votes
+      const email = user?.email ?? (token.email as string | undefined)
+      if (email) {
         const dbUser = await prisma.user.upsert({
-          where: { email: user.email },
+          where: { email },
           update: {
-            name: user.name ?? null,
-            image: (profile as any)?.picture ?? user.image ?? null,
+            name: user?.name ?? null,
+            image: (profile as any)?.picture ?? user?.image ?? null,
           },
           create: {
-            email: user.email,
-            name: user.name ?? null,
-            image: (profile as any)?.picture ?? user.image ?? null,
+            email,
+            name: user?.name ?? null,
+            image: (profile as any)?.picture ?? user?.image ?? null,
           },
         })
         token.sub = dbUser.id
+        token.email = email
       }
       return token
     },
