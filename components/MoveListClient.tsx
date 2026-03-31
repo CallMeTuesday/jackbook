@@ -12,6 +12,15 @@ import { ArrowUpAZ, ArrowDownAZ, Search, LayoutGrid, List } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { YouTubeVideo } from '@/lib/youtube'
 
+const STYLES = [
+  { key: 'house', label: 'House' },
+  { key: 'hiphop', label: 'Hip-hop' },
+  { key: 'locking', label: 'Locking' },
+  { key: 'popping', label: 'Popping' },
+  { key: 'breaking', label: 'Breaking' },
+  { key: 'waacking', label: 'Waacking' },
+  { key: 'vogue', label: 'Vogue' },
+]
 
 function MoveListItem({ name, slug, thumbnail }: { name: string; slug: string; thumbnail?: string | null }) {
   const { from, to } = getMoveGradient(name)
@@ -21,7 +30,6 @@ function MoveListItem({ name, slug, thumbnail }: { name: string; slug: string; t
       href={`/moves/${slug}`}
       className="flex items-center gap-3 py-2 border-b border-zinc-800/60 hover:bg-zinc-900/30 transition-colors group"
     >
-      {/* Mini gradient card */}
       <div
         className="relative w-16 h-9 flex-shrink-0 rounded-md overflow-hidden"
         style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
@@ -33,7 +41,6 @@ function MoveListItem({ name, slug, thumbnail }: { name: string; slug: string; t
           </>
         )}
       </div>
-
       <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">
         {name}
       </span>
@@ -45,27 +52,42 @@ interface Move {
   id: string
   name: string
   slug: string
+  style: string
   featured: boolean
   thumbnail?: string | null
 }
 
 interface MoveListClientProps {
   moves: Move[]
-  externalSearch?: string
 }
 
-export function MoveListClient({ moves, externalSearch = '' }: MoveListClientProps) {
+export function MoveListClient({ moves }: MoveListClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [sortAsc, setSortAsc] = useState(true)
 
+  const activeStyle = searchParams.get('style') ?? 'house'
+  const externalSearch = searchParams.get('q') ?? ''
   const viewMode = (searchParams.get('view') === 'list' ? 'list' : 'grid') as 'grid' | 'list'
+
+  function setStyle(style: string) {
+    const params = new URLSearchParams(searchParams.toString())
+    if (style === 'house') {
+      params.delete('style')
+    } else {
+      params.set('style', style)
+    }
+    // Clear search when switching styles
+    params.delete('q')
+    router.push(params.toString() ? `/?${params.toString()}` : '/')
+  }
 
   function setViewMode(mode: 'grid' | 'list') {
     const params = new URLSearchParams(searchParams.toString())
     mode === 'list' ? params.set('view', 'list') : params.delete('view')
     router.replace(`/?${params.toString()}`, { scroll: false })
   }
+
   const [ytVideos, setYtVideos] = useState<YouTubeVideo[]>([])
   const [ytLoading, setYtLoading] = useState(false)
   const [ytError, setYtError] = useState<string | null>(null)
@@ -74,15 +96,16 @@ export function MoveListClient({ moves, externalSearch = '' }: MoveListClientPro
 
   const filtered = useMemo(() => {
     const q = externalSearch.toLowerCase()
-    const result = moves.filter((m) => m.name.toLowerCase().includes(q))
+    const result = moves
+      .filter((m) => m.style === activeStyle)
+      .filter((m) => m.name.toLowerCase().includes(q))
     return [...result].sort((a, b) => {
       const cmp = a.name.localeCompare(b.name)
       return sortAsc ? cmp : -cmp
     })
-  }, [moves, externalSearch, sortAsc])
+  }, [moves, activeStyle, externalSearch, sortAsc])
 
   const noLocalResults = externalSearch.length > 0 && filtered.length === 0
-  // Auto-search YouTube when no local results
   useEffect(() => {
     if (!noLocalResults || !hasApiKey) {
       setYtVideos([])
@@ -113,10 +136,30 @@ export function MoveListClient({ moves, externalSearch = '' }: MoveListClientPro
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
   }, [externalSearch, noLocalResults, hasApiKey])
 
+  // Style filter buttons
+  const styleFilter = (
+    <div className="flex flex-wrap gap-2 mb-5">
+      {STYLES.map(({ key, label }) => (
+        <button
+          key={key}
+          onClick={() => setStyle(key)}
+          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+            activeStyle === key
+              ? 'bg-violet-700 text-white'
+              : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
+          }`}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  )
+
   // Local move list
   if (!noLocalResults) {
     return (
       <div>
+        {styleFilter}
         <div className="flex items-center justify-between mb-3">
           <p className="text-xs text-zinc-600">
             {filtered.length} {filtered.length === 1 ? 'move' : 'moves'}
@@ -176,6 +219,7 @@ export function MoveListClient({ moves, externalSearch = '' }: MoveListClientPro
   // YouTube search results
   return (
     <div>
+      {styleFilter}
       <div className="flex items-center gap-2 mb-5 text-zinc-400">
         <Search className="h-4 w-4 flex-shrink-0" />
         <p className="text-sm">

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession, signIn, signOut } from 'next-auth/react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -15,39 +15,30 @@ import { Music2, Search, X } from 'lucide-react'
 
 const isDev = process.env.NEXT_PUBLIC_DEV_AUTH === 'true'
 
-interface NavbarProps {
-  search?: string
-  onSearchChange?: (v: string) => void
-}
-
-export function Navbar({ search: externalSearch, onSearchChange }: NavbarProps) {
+export function Navbar() {
   const { data: session, status } = useSession()
-  const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const isHome = pathname === '/'
 
-  const [inputValue, setInputValue] = useState(externalSearch ?? '')
+  const [inputValue, setInputValue] = useState(searchParams.get('q') ?? '')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    if (isHome) setInputValue(externalSearch ?? '')
-  }, [externalSearch, isHome])
+    setInputValue(searchParams.get('q') ?? '')
+  }, [searchParams])
 
   function handleInput(value: string) {
     setInputValue(value)
-    if (isHome && onSearchChange) {
-      onSearchChange(value)
-    } else {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-      debounceRef.current = setTimeout(() => {
-        const params = new URLSearchParams()
-        if (value) params.set('q', encodeURIComponent(value))
-        const view = searchParams.get('view')
-        if (view) params.set('view', view)
-        router.push(params.toString() ? `/?${params.toString()}` : '/')
-      }, 300)
-    }
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      const params = new URLSearchParams()
+      if (value) params.set('q', value)
+      const view = searchParams.get('view')
+      if (view) params.set('view', view)
+      const style = searchParams.get('style')
+      if (style) params.set('style', style)
+      router.push(params.toString() ? `/?${params.toString()}` : '/')
+    }, 300)
   }
 
   // Dev login form state

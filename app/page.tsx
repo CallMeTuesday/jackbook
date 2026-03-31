@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 export default async function HomePage() {
   const moves = await prisma.move.findMany({
     orderBy: { name: 'asc' },
-    select: { id: true, name: true, slug: true, featured: true, thumbnail: true },
+    select: { id: true, name: true, slug: true, style: true, featured: true, thumbnail: true },
   })
 
   return <HomeClient moves={moves} />

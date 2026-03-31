@@ -59,7 +59,6 @@ export function SavedVideosList({ groups }: { groups: Group[] }) {
 
   return (
     <section className="space-y-8">
-      <h2 className="text-sm font-medium text-zinc-500 uppercase tracking-wide">Saved videos</h2>
       {items.map((group) => (
         <div key={group.moveId} className="space-y-4">
           <Link

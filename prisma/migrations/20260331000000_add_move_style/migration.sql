@@ -1,0 +1,1 @@
+ALTER TABLE "Move" ADD COLUMN "style" TEXT NOT NULL DEFAULT 'house';

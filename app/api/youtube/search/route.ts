@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
     const move = searchParams.get('move')
     const q = searchParams.get('q')
     const moveId = searchParams.get('moveId')
+    const style = searchParams.get('style') ?? 'house'
 
     if (!move && !q) {
       return NextResponse.json({ error: 'move or q parameter required' }, { status: 400 })
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
     }
 
     const result = move
-      ? await searchMoveVideos(move, ytAuth)
+      ? await searchMoveVideos(move, ytAuth, style)
       : await searchFreeQuery(q!, ytAuth)
 
     if (result.error) {

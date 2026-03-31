@@ -33,12 +33,24 @@ function handleError(res: Response, body: any): YouTubeSearchResult {
   return { videos: [], error: body.error?.message || 'Failed to fetch videos' }
 }
 
-/** Search for a house dance tutorial for a specific move name. */
+const STYLE_QUERY: Record<string, string> = {
+  house: 'House Dance Tutorial',
+  hiphop: 'Hip Hop Dance Tutorial',
+  locking: 'Locking Dance Tutorial',
+  popping: 'Popping Dance Tutorial',
+  breaking: 'Breaking Dance Tutorial',
+  waacking: 'Waacking Dance Tutorial',
+  vogue: 'Voguing Tutorial',
+}
+
+/** Search for a dance tutorial for a specific move name and style. */
 export async function searchMoveVideos(
   moveName: string,
-  auth: { apiKey: string } | { accessToken: string }
+  auth: { apiKey: string } | { accessToken: string },
+  style = 'house'
 ): Promise<YouTubeSearchResult> {
-  const query = encodeURIComponent(`House Dance Tutorial ${moveName}`)
+  const styleLabel = STYLE_QUERY[style] ?? STYLE_QUERY.house
+  const query = encodeURIComponent(`${moveName} ${styleLabel}`)
   return searchQuery(query, auth)
 }
 

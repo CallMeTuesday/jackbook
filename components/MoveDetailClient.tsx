@@ -15,6 +15,7 @@ interface Move {
   id: string
   name: string
   slug: string
+  style: string
 }
 
 export function MoveDetailClient({ move }: { move: Move }) {
@@ -31,7 +32,7 @@ export function MoveDetailClient({ move }: { move: Move }) {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`/api/youtube/search?move=${encodeURIComponent(move.name)}&moveId=${move.id}`)
+      const res = await fetch(`/api/youtube/search?move=${encodeURIComponent(move.name)}&moveId=${move.id}&style=${move.style}`)
       if (!res.ok) {
         const data = await res.json()
         setError(data.error || 'Failed to load videos')

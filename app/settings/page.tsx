@@ -71,15 +71,20 @@ export default function SettingsPage() {
 
         <form onSubmit={saveUsername} className="space-y-3">
           <div>
-            <label className="block text-xs text-zinc-500 mb-1">Username</label>
-            <input
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="your-username"
-              minLength={3}
-              maxLength={30}
-              className="w-full h-9 px-3 rounded-md bg-zinc-900 border border-zinc-800 text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-600"
-            />
+            <label className="block text-xs text-zinc-500 mb-1">Profile URL</label>
+            <div className="flex h-9 rounded-md bg-zinc-900 border border-zinc-800 focus-within:border-zinc-600 overflow-hidden">
+              <span className="flex items-center pl-3 pr-1 text-sm text-zinc-500 select-none whitespace-nowrap">
+                {typeof window !== 'undefined' ? window.location.host : 'jackbook-production.up.railway.app'}/u/
+              </span>
+              <input
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="your-handle"
+                minLength={3}
+                maxLength={30}
+                className="flex-1 min-w-0 bg-transparent text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none pr-3"
+              />
+            </div>
             <p className="text-xs text-zinc-600 mt-1">Letters, numbers, _ and - only. 3–30 characters.</p>
           </div>
 
