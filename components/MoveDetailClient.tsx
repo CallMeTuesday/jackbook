@@ -99,7 +99,7 @@ export function MoveDetailClient({ move }: { move: Move }) {
           ) : videos.length > 0 ? (
             <div className="space-y-6">
               {videos.map((video) => (
-                <VideoCard key={video.videoId} video={video} />
+                <VideoCard key={video.videoId} video={video} moveId={move.id} moveName={move.name} />
               ))}
             </div>
           ) : (

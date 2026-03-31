@@ -45,6 +45,23 @@ model User {
   accounts           Account[]
   sessions           Session[]
   submissions        Submission[]
+  savedVideos        SavedVideo[]
+}
+
+model SavedVideo {
+  id           String   @id @default(cuid())
+  userId       String
+  moveId       String
+  moveName     String
+  videoId      String
+  videoTitle   String
+  videoThumb   String
+  channelTitle String
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, videoId, moveId])
 }
 
 model Submission {
