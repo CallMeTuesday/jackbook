@@ -70,6 +70,10 @@ export function Navbar({ search: externalSearch, onSearchChange }: NavbarProps) 
       {status === 'loading' ? (
         <div className="h-7 w-7 bg-zinc-800 rounded-full animate-pulse" />
       ) : session ? (
+        <div className="flex items-center gap-3">
+          <Link href="/favorites" className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
+            Favorites
+          </Link>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="hover:opacity-80 transition-opacity">
@@ -98,6 +102,7 @@ export function Navbar({ search: externalSearch, onSearchChange }: NavbarProps) 
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
       ) : isDev && showDevForm ? (
         <form onSubmit={handleDevLogin} className="flex items-center gap-1.5">
           <input
