@@ -74,7 +74,7 @@ export default function SettingsPage() {
             <label className="block text-xs text-zinc-500 mb-1">Profile URL</label>
             <div className="flex h-9 rounded-md bg-zinc-900 border border-zinc-800 focus-within:border-zinc-600 overflow-hidden">
               <span className="flex items-center pl-3 pr-1 text-sm text-zinc-500 select-none whitespace-nowrap">
-                {typeof window !== 'undefined' ? window.location.host : 'jackbook-production.up.railway.app'}/u/
+                {typeof window !== 'undefined' ? window.location.host : 'jackbook.app'}/
               </span>
               <input
                 value={username}
@@ -103,7 +103,7 @@ export default function SettingsPage() {
 
             {savedUsername && (
               <Link
-                href={`/u/${savedUsername}`}
+                href={`/${savedUsername}`}
                 className="inline-flex items-center gap-1.5 text-sm text-violet-400 hover:text-violet-300 transition-colors"
               >
                 View profile <ExternalLink className="h-3.5 w-3.5" />

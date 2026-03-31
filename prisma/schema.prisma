@@ -60,7 +60,7 @@ model SavedVideo {
   channelTitle String
   createdAt    DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, videoId, moveId])
 }
@@ -76,7 +76,7 @@ model Submission {
   status    String   @default("pending")
   createdAt DateTime @default(now())
 
-  user User  @relation(fields: [userId], references: [id])
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   move Move? @relation(fields: [moveId], references: [id])
 }
 
