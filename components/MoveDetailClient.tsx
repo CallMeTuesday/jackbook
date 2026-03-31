@@ -17,25 +17,11 @@ interface Move {
   slug: string
 }
 
-interface VoteCounts {
-  [videoId: string]: { count: number; videoTitle: string }
-}
-
 export function MoveDetailClient({ move }: { move: Move }) {
   const { data: session, status } = useSession()
   const [videos, setVideos] = useState<YouTubeVideo[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [voteCounts, setVoteCounts] = useState<VoteCounts>({})
-  const [userVotes, setUserVotes] = useState<Set<string>>(new Set())
-
-  const fetchVotes = useCallback(async () => {
-    const res = await fetch(`/api/votes?moveId=${move.id}`)
-    if (res.ok) {
-      const data = await res.json()
-      setVoteCounts(data.votes || {})
-    }
-  }, [move.id])
 
   const hasApiKey = process.env.NEXT_PUBLIC_HAS_YT_KEY === 'true'
 
@@ -59,40 +45,12 @@ export function MoveDetailClient({ move }: { move: Move }) {
     }
   }, [session, move.name, move.id, hasApiKey])
 
-  useEffect(() => { fetchVotes() }, [fetchVotes])
-  useEffect(() => { if (session || hasApiKey) fetchVideos() }, [session, hasApiKey, fetchVideos])
-
-  const handleVote = async (videoId: string, videoTitle: string) => {
-    if (!session) return
-    const res = await fetch('/api/votes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ moveId: move.id, videoId, videoTitle }),
-    })
-    if (res.ok) {
-      const data = await res.json()
-      setUserVotes((prev) => {
-        const next = new Set(prev)
-        data.voted ? next.add(videoId) : next.delete(videoId)
-        return next
-      })
-      await fetchVotes()
-    }
-  }
-
-  const communityPickId = Object.entries(voteCounts).reduce((best, [id, data]) => {
-    return data.count > (voteCounts[best]?.count || 0) ? id : best
-  }, '')
-  const hasCommunityPick = communityPickId && (voteCounts[communityPickId]?.count || 0) > 0
-
-  // Community pick floats to top
-  const sortedVideos = hasCommunityPick
-    ? [...videos].sort((a, b) => (b.videoId === communityPickId ? 1 : 0) - (a.videoId === communityPickId ? 1 : 0))
-    : videos
+  useEffect(() => {
+    if (session || hasApiKey) fetchVideos()
+  }, [session, hasApiKey, fetchVideos])
 
   return (
     <div>
-      {/* Header */}
       <div className="mb-5">
         <Link
           href="/"
@@ -104,16 +62,15 @@ export function MoveDetailClient({ move }: { move: Move }) {
         <h1 className="text-2xl font-bold text-zinc-100">{move.name}</h1>
       </div>
 
-      {/* Unauthenticated gate — skip if API key handles fetching */}
       {status === 'unauthenticated' && !hasApiKey && (
         <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-8 text-center">
           <Lock className="h-8 w-8 text-zinc-600 mx-auto mb-3" />
           <p className="text-zinc-200 font-medium mb-1">Sign in to watch tutorials</p>
           <p className="text-zinc-500 text-sm mb-5">
-            Sign in to search YouTube for tutorials and vote for your favorites.
+            Sign in to browse tutorials for this move.
           </p>
           <Button
-            onClick={() => signIn()}
+            onClick={() => signIn('google', { callbackUrl: window.location.href })}
             className="bg-violet-700 hover:bg-violet-600 text-white"
           >
             Sign in
@@ -121,7 +78,6 @@ export function MoveDetailClient({ move }: { move: Move }) {
         </div>
       )}
 
-      {/* Video feed */}
       {(status === 'authenticated' || hasApiKey) && (
         <>
           {error && (
@@ -140,18 +96,10 @@ export function MoveDetailClient({ move }: { move: Move }) {
                 </div>
               ))}
             </div>
-          ) : sortedVideos.length > 0 ? (
+          ) : videos.length > 0 ? (
             <div className="space-y-6">
-              {sortedVideos.map((video) => (
-                <VideoCard
-                  key={video.videoId}
-                  video={video}
-                  moveId={move.id}
-                  voteCount={voteCounts[video.videoId]?.count || 0}
-                  hasVoted={userVotes.has(video.videoId)}
-                  isCommunityPick={!!hasCommunityPick && video.videoId === communityPickId}
-                  onVote={handleVote}
-                />
+              {videos.map((video) => (
+                <VideoCard key={video.videoId} video={video} />
               ))}
             </div>
           ) : (

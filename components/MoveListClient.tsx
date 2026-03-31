@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowUpAZ, ArrowDownAZ, Search, LayoutGrid, List } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { YouTubeVideo } from '@/lib/youtube'
-import { useSession } from 'next-auth/react'
+
 
 function MoveListItem({ name, slug, thumbnail }: { name: string; slug: string; thumbnail?: string | null }) {
   const { from, to } = getMoveGradient(name)
@@ -55,7 +55,6 @@ interface MoveListClientProps {
 }
 
 export function MoveListClient({ moves, externalSearch = '' }: MoveListClientProps) {
-  const { data: session } = useSession()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [sortAsc, setSortAsc] = useState(true)
@@ -83,11 +82,9 @@ export function MoveListClient({ moves, externalSearch = '' }: MoveListClientPro
   }, [moves, externalSearch, sortAsc])
 
   const noLocalResults = externalSearch.length > 0 && filtered.length === 0
-  const canSearch = hasApiKey || !!session
-
   // Auto-search YouTube when no local results
   useEffect(() => {
-    if (!noLocalResults || !canSearch) {
+    if (!noLocalResults || !hasApiKey) {
       setYtVideos([])
       setYtError(null)
       return
@@ -114,7 +111,7 @@ export function MoveListClient({ moves, externalSearch = '' }: MoveListClientPro
     }, 600)
 
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
-  }, [externalSearch, noLocalResults, canSearch])
+  }, [externalSearch, noLocalResults, hasApiKey])
 
   // Local move list
   if (!noLocalResults) {
@@ -201,15 +198,7 @@ export function MoveListClient({ moves, externalSearch = '' }: MoveListClientPro
       ) : ytVideos.length > 0 ? (
         <div className="space-y-6">
           {ytVideos.map((video) => (
-            <VideoCard
-              key={video.videoId}
-              video={video}
-              moveId=""
-              voteCount={0}
-              hasVoted={false}
-              isCommunityPick={false}
-              onVote={async () => {}}
-            />
+            <VideoCard key={video.videoId} video={video} />
           ))}
         </div>
       ) : (
