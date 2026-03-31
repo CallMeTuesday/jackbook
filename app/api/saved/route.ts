@@ -15,6 +15,18 @@ export async function GET(request: NextRequest) {
     orderBy: { createdAt: 'desc' },
   })
 
+  // Attach move style (only needed for full list, not per-move queries)
+  if (!moveId && saved.length > 0) {
+    const moveIds = [...new Set(saved.map((v) => v.moveId))]
+    const moves = await prisma.move.findMany({
+      where: { id: { in: moveIds } },
+      select: { id: true, style: true },
+    })
+    const styleMap = Object.fromEntries(moves.map((m) => [m.id, m.style]))
+    const savedWithStyle = saved.map((v) => ({ ...v, moveStyle: styleMap[v.moveId] ?? 'house' }))
+    return NextResponse.json({ saved: savedWithStyle })
+  }
+
   return NextResponse.json({ saved })
 }
 

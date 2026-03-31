@@ -5,6 +5,15 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Trash2, Play } from 'lucide-react'
 
+function nameToSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/['']/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+}
+
 interface SavedVideo {
   id: string
   videoId: string
@@ -18,20 +27,25 @@ interface SavedVideo {
 interface Group {
   moveName: string
   moveId: string
+  moveStyle?: string
   videos: SavedVideo[]
 }
 
-export function SavedVideosList({ groups }: { groups: Group[] }) {
+interface Props {
+  groups: Group[]
+  onRemove?: (moveId: string, videoId: string) => void
+}
+
+export function SavedVideosList({ groups, onRemove }: Props) {
   const [items, setItems] = useState<Group[]>(groups)
   const [playing, setPlaying] = useState<string | null>(null)
 
   async function handleRemove(moveId: string, videoId: string) {
-    // Find the move and video to get its details for the API call
     const group = items.find((g) => g.moveId === moveId)
     const video = group?.videos.find((v) => v.videoId === videoId)
     if (!video) return
 
-    await fetch('/api/saved', {
+    const res = await fetch('/api/saved', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -44,6 +58,8 @@ export function SavedVideosList({ groups }: { groups: Group[] }) {
       }),
     })
 
+    if (!res.ok) return
+
     setItems((prev) =>
       prev
         .map((g) =>
@@ -53,6 +69,8 @@ export function SavedVideosList({ groups }: { groups: Group[] }) {
         )
         .filter((g) => g.videos.length > 0)
     )
+
+    onRemove?.(moveId, videoId)
   }
 
   if (items.length === 0) return null
@@ -62,7 +80,7 @@ export function SavedVideosList({ groups }: { groups: Group[] }) {
       {items.map((group) => (
         <div key={group.moveId} className="space-y-4">
           <Link
-            href={`/moves/${group.moveId}`}
+            href={`/moves/${nameToSlug(group.moveName)}`}
             className="text-base font-semibold text-zinc-200 hover:text-white transition-colors"
           >
             {group.moveName}

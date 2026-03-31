@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useSession, signIn } from 'next-auth/react'
-import Link from 'next/link'
-import { ArrowLeft, Lock } from 'lucide-react'
+import { Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { VideoCard } from './VideoCard'
@@ -63,13 +62,6 @@ export function MoveDetailClient({ move }: { move: Move }) {
   return (
     <div>
       <div className="mb-5">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-zinc-500 hover:text-zinc-300 transition-colors text-sm mb-3"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          All moves
-        </Link>
         <h1 className="text-2xl font-bold text-zinc-100">{move.name}</h1>
       </div>
 
