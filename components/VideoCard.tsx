@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Play, Bookmark, Trash2 } from 'lucide-react'
 import { YouTubeVideo } from '@/lib/youtube'
@@ -18,6 +18,10 @@ export function VideoCard({ video, moveId, moveName, initialSaved = false, onRem
   const { data: session } = useSession()
   const [playing, setPlaying] = useState(false)
   const [saved, setSaved] = useState(initialSaved)
+
+  useEffect(() => {
+    setSaved(initialSaved)
+  }, [initialSaved])
   const [saving, setSaving] = useState(false)
 
   async function toggleSave() {
