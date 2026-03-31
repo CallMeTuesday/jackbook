@@ -20,6 +20,7 @@ interface Move {
 export function MoveDetailClient({ move }: { move: Move }) {
   const { data: session, status } = useSession()
   const [videos, setVideos] = useState<YouTubeVideo[]>([])
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -48,6 +49,15 @@ export function MoveDetailClient({ move }: { move: Move }) {
   useEffect(() => {
     if (session || hasApiKey) fetchVideos()
   }, [session, hasApiKey, fetchVideos])
+
+  useEffect(() => {
+    if (!session) return
+    fetch(`/api/saved?moveId=${move.id}`)
+      .then((r) => r.json())
+      .then(({ saved }) => {
+        setSavedIds(new Set((saved ?? []).map((s: { videoId: string }) => s.videoId)))
+      })
+  }, [session, move.id])
 
   return (
     <div>
@@ -99,7 +109,7 @@ export function MoveDetailClient({ move }: { move: Move }) {
           ) : videos.length > 0 ? (
             <div className="space-y-6">
               {videos.map((video) => (
-                <VideoCard key={video.videoId} video={video} moveId={move.id} moveName={move.name} />
+                <VideoCard key={video.videoId} video={video} moveId={move.id} moveName={move.name} initialSaved={savedIds.has(video.videoId)} />
               ))}
             </div>
           ) : (
