@@ -62,6 +62,39 @@ export async function searchFreeQuery(
   return searchQuery(encodeURIComponent(query), auth)
 }
 
+/** Fetch video details (title, channel, thumbnail) for a list of video IDs in one request. */
+export async function getVideosByIds(
+  videoIds: string[],
+  auth: { apiKey: string } | { accessToken: string }
+): Promise<Record<string, { title: string; channelTitle: string; thumbnail: string }>> {
+  if (videoIds.length === 0) return {}
+  const ids = videoIds.join(',')
+  const base = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${ids}`
+
+  let res: Response
+  if ('apiKey' in auth) {
+    res = await ytFetch(`${base}&key=${auth.apiKey}`)
+  } else {
+    res = await ytFetch(base, auth.accessToken)
+  }
+
+  if (!res.ok) return {}
+
+  const data = await res.json()
+  const result: Record<string, { title: string; channelTitle: string; thumbnail: string }> = {}
+  for (const item of data.items || []) {
+    result[item.id] = {
+      title: item.snippet.title,
+      channelTitle: item.snippet.channelTitle,
+      thumbnail:
+        item.snippet.thumbnails.medium?.url ||
+        item.snippet.thumbnails.default?.url ||
+        '',
+    }
+  }
+  return result
+}
+
 async function searchQuery(
   encodedQuery: string,
   auth: { apiKey: string } | { accessToken: string }
