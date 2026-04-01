@@ -55,6 +55,8 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  html, body {
     overflow-x: hidden;
   }
   /* Prevent iOS from zooming into inputs — requires font-size >= 16px */
