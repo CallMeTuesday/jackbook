@@ -4,6 +4,7 @@ import { Suspense } from 'react'
 import './globals.css'
 import { SessionProvider } from '@/components/SessionProvider'
 import { Navbar } from '@/components/Navbar'
+import { Footer } from '@/components/Footer'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -25,6 +26,7 @@ export default function RootLayout({
             <Navbar />
           </Suspense>
           {children}
+          <Footer />
         </SessionProvider>
       </body>
     </html>
