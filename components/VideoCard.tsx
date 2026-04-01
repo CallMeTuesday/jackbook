@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { flushSync } from 'react-dom'
 import Image from 'next/image'
 import { Play, Bookmark, Trash2 } from 'lucide-react'
 import { YouTubeVideo } from '@/lib/youtube'
@@ -60,7 +61,7 @@ export function VideoCard({ video, moveId, moveName, initialSaved = false, onRem
         ) : (
           <button
             className="absolute inset-0 w-full h-full group"
-            onClick={() => setPlaying(true)}
+            onClick={() => flushSync(() => setPlaying(true))}
             aria-label={`Play ${video.title}`}
           >
             <Image

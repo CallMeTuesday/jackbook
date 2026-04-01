@@ -99,9 +99,7 @@ export function MoveListClient({ moves }: MoveListClientProps) {
 
   function setViewMode(mode: 'grid' | 'list' | 'flash') {
     const params = new URLSearchParams(searchParams.toString())
-    if (mode === 'list') params.set('view', 'list')
-    else if (mode === 'flash') params.set('view', 'flash')
-    else params.delete('view')
+    params.set('view', mode)
     router.replace(`/?${params.toString()}`, { scroll: false })
   }
 
@@ -153,23 +151,34 @@ export function MoveListClient({ moves }: MoveListClientProps) {
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
   }, [externalSearch, noLocalResults, hasApiKey])
 
-  // Style filter buttons
+  // Style filter — select on mobile, pills on desktop
   const styleFilter = (
-    <div className="flex flex-wrap gap-2 mb-5">
-      {STYLES.map(({ key, label }) => (
-        <button
-          key={key}
-          onClick={() => setStyle(key)}
-          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-            activeStyle === key
-              ? 'bg-violet-700 text-white'
-              : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
-          }`}
-        >
-          {label}
-        </button>
-      ))}
-    </div>
+    <>
+      <select
+        value={activeStyle}
+        onChange={(e) => setStyle(e.target.value)}
+        className="block md:hidden w-full mb-5 bg-zinc-800 border border-zinc-700 text-zinc-100 text-sm rounded-full px-4 py-2 focus:outline-none focus:border-zinc-500 appearance-none"
+      >
+        {STYLES.map(({ key, label }) => (
+          <option key={key} value={key}>{label}</option>
+        ))}
+      </select>
+      <div className="hidden md:flex flex-wrap gap-2 mb-5">
+        {STYLES.map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => setStyle(key)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              activeStyle === key
+                ? 'bg-violet-700 text-white'
+                : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </>
   )
 
   // Local move list
@@ -193,15 +202,13 @@ export function MoveListClient({ moves }: MoveListClientProps) {
               <span className="text-xs">{sortAsc ? 'A–Z' : 'Z–A'}</span>
             </Button>
             <div className="w-px h-4 bg-zinc-800 mx-1" />
-            {isMobile && (
-              <button
-                onClick={() => setViewMode('flash')}
-                className={`p-1.5 rounded transition-colors ${viewMode === 'flash' ? 'text-zinc-200' : 'text-zinc-600 hover:text-zinc-400'}`}
-                title="Flashcard view"
-              >
-                <Layers className="h-3.5 w-3.5" />
-              </button>
-            )}
+            <button
+              onClick={() => setViewMode('flash')}
+              className={`md:hidden p-1.5 rounded transition-colors ${viewMode === 'flash' ? 'text-zinc-200' : 'text-zinc-600 hover:text-zinc-400'}`}
+              title="Flashcard view"
+            >
+              <Layers className="h-3.5 w-3.5" />
+            </button>
             <button
               onClick={() => setViewMode('grid')}
               className={`p-1.5 rounded transition-colors ${viewMode === 'grid' ? 'text-zinc-200' : 'text-zinc-600 hover:text-zinc-400'}`}
