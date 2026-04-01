@@ -20,17 +20,11 @@ export function FlashcardView({ moves }: { moves: Move[] }) {
   const [dragX, setDragX] = useState(0)
   const [dragging, setDragging] = useState(false)
   const [exitDir, setExitDir] = useState<'left' | 'right' | null>(null)
-  const [skipTransition, setSkipTransition] = useState(false)
   const startX = useRef(0)
   const didDrag = useRef(false)
+  const cardRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { setIndex(0) }, [moves])
-
-  useEffect(() => {
-    if (!skipTransition) return
-    const id = requestAnimationFrame(() => setSkipTransition(false))
-    return () => cancelAnimationFrame(id)
-  }, [skipTransition])
 
   if (moves.length === 0) {
     return <p className="text-zinc-500 text-sm text-center py-12">No moves found.</p>
@@ -39,7 +33,7 @@ export function FlashcardView({ moves }: { moves: Move[] }) {
   const i = Math.min(index, moves.length - 1)
   const card = moves[i]
 
-  // Only determine behind card direction once drag has started — fully symmetric
+  // Only show behind card once drag direction is known — fully symmetric
   const dragDir: 'left' | 'right' | null =
     exitDir ?? (dragX < -4 ? 'left' : dragX > 4 ? 'right' : null)
   const behindIndex = dragDir === 'left' ? i + 1 : dragDir === 'right' ? i - 1 : null
@@ -56,11 +50,27 @@ export function FlashcardView({ moves }: { moves: Move[] }) {
 
   function onTransitionEnd() {
     if (!exitDir) return
-    setSkipTransition(true)
-    setIndex(exitDir === 'left' ? i + 1 : i - 1)
+    const el = cardRef.current
+    if (el) {
+      // Synchronously reset the card position with no transition before React
+      // re-renders with the new card. Forces a reflow so the browser commits
+      // the reset state — this is the cross-browser reliable approach.
+      el.style.transition = 'none'
+      el.style.transform = 'translateX(0) rotate(0deg)'
+      void el.offsetWidth // force reflow
+    }
+    const nextIndex = exitDir === 'left' ? i + 1 : i - 1
+    setIndex(nextIndex)
     setExitDir(null)
     setDragX(0)
     setDragging(false)
+    // Re-enable React-driven transitions next frame
+    requestAnimationFrame(() => {
+      if (el) {
+        el.style.transition = ''
+        el.style.transform = ''
+      }
+    })
   }
 
   function onTouchStart(e: React.TouchEvent) {
@@ -92,7 +102,7 @@ export function FlashcardView({ moves }: { moves: Move[] }) {
   } else if (exitDir === 'right') {
     activeTransform = 'translateX(130vw) rotate(22deg)'
     activeTransition = 'transform 0.32s ease-in'
-  } else if (dragging || skipTransition) {
+  } else if (dragging) {
     activeTransform = `translateX(${dragX}px) rotate(${dragX * 0.033}deg)`
     activeTransition = 'none'
   } else {
@@ -106,7 +116,6 @@ export function FlashcardView({ moves }: { moves: Move[] }) {
     <div className="select-none" style={{ height: 'calc(100dvh - 12rem)' }}>
       <div className="relative w-full h-full">
 
-        {/* Behind card — only renders once drag direction is known */}
         {behind && (() => {
           const { from: bf, to: bt } = getMoveGradient(behind.name)
           return (
@@ -130,8 +139,8 @@ export function FlashcardView({ moves }: { moves: Move[] }) {
           )
         })()}
 
-        {/* Active card */}
         <div
+          ref={cardRef}
           className="absolute inset-0 rounded-2xl overflow-hidden"
           style={{
             background: `linear-gradient(135deg, ${from}, ${to})`,
@@ -165,7 +174,6 @@ export function FlashcardView({ moves }: { moves: Move[] }) {
 
       </div>
 
-      {/* Counter + nav */}
       <div className="flex items-center justify-between px-1 mt-2">
         <button
           onClick={() => advance('right')}
