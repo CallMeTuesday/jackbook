@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { flushSync } from 'react-dom'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { Play, Bookmark, Trash2 } from 'lucide-react'
 import { YouTubeVideo } from '@/lib/youtube'
@@ -18,6 +17,7 @@ interface VideoCardProps {
 export function VideoCard({ video, moveId, moveName, initialSaved = false, onRemove }: VideoCardProps) {
   const { data: session } = useSession()
   const [playing, setPlaying] = useState(false)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
   const [saved, setSaved] = useState(initialSaved)
 
   useEffect(() => {
@@ -50,18 +50,24 @@ export function VideoCard({ video, moveId, moveName, initialSaved = false, onRem
   return (
     <div className="border-b border-zinc-800 last:border-0 pb-6 last:pb-0">
       <div className="relative w-full aspect-video bg-zinc-900 rounded-lg overflow-hidden mb-3">
-        {playing ? (
-          <iframe
-            src={`https://www.youtube.com/embed/${video.videoId}?autoplay=1&playsinline=1`}
-            title={video.title}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            className="absolute inset-0 w-full h-full"
-          />
-        ) : (
+        {/* iframe always in DOM — src set directly on tap to preserve user gesture */}
+        <iframe
+          ref={iframeRef}
+          src=""
+          title={video.title}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          className="absolute inset-0 w-full h-full"
+        />
+        {!playing && (
           <button
             className="absolute inset-0 w-full h-full group"
-            onClick={() => flushSync(() => setPlaying(true))}
+            onClick={() => {
+              if (iframeRef.current) {
+                iframeRef.current.src = `https://www.youtube.com/embed/${video.videoId}?autoplay=1&playsinline=1`
+              }
+              setPlaying(true)
+            }}
             aria-label={`Play ${video.title}`}
           >
             <Image
