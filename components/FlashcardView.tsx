@@ -20,10 +20,20 @@ export function FlashcardView({ moves }: { moves: Move[] }) {
   const [dragX, setDragX] = useState(0)
   const [dragging, setDragging] = useState(false)
   const [exitDir, setExitDir] = useState<'left' | 'right' | null>(null)
+  // After exit completes we need one transition-less render so the card
+  // doesn't animate back across the screen when it reappears with the new content
+  const [skipTransition, setSkipTransition] = useState(false)
   const startX = useRef(0)
   const didDrag = useRef(false)
 
   useEffect(() => { setIndex(0) }, [moves])
+
+  // Re-enable transition after the skip render has committed to the DOM
+  useEffect(() => {
+    if (!skipTransition) return
+    const id = requestAnimationFrame(() => setSkipTransition(false))
+    return () => cancelAnimationFrame(id)
+  }, [skipTransition])
 
   if (moves.length === 0) {
     return <p className="text-zinc-500 text-sm text-center py-12">No moves found.</p>
@@ -32,9 +42,14 @@ export function FlashcardView({ moves }: { moves: Move[] }) {
   const i = Math.min(index, moves.length - 1)
   const card = moves[i]
 
-  // The card that will be revealed underneath
-  const behindIndex = exitDir === 'left' || (!exitDir && dragX < 0) ? i + 1 : i - 1
+  const swipingLeft = exitDir === 'left' || (!exitDir && dragX < 0)
+  const behindIndex = swipingLeft ? i + 1 : i - 1
   const behind = moves[behindIndex]
+
+  // Behind card grows and brightens as the top card is dragged
+  const dragProgress = exitDir ? 1 : Math.min(Math.abs(dragX) / THRESHOLD, 1)
+  const behindScale = 0.93 + 0.07 * dragProgress
+  const behindOpacity = 0.5 + 0.5 * dragProgress
 
   function advance(dir: 'left' | 'right') {
     if (dir === 'left' && i < moves.length - 1) setExitDir('left')
@@ -43,6 +58,9 @@ export function FlashcardView({ moves }: { moves: Move[] }) {
 
   function onTransitionEnd() {
     if (!exitDir) return
+    // Set skipTransition BEFORE updating index so the first render of the
+    // new card uses transition:none — no slide-back animation
+    setSkipTransition(true)
     setIndex(exitDir === 'left' ? i + 1 : i - 1)
     setExitDir(null)
     setDragX(0)
@@ -67,20 +85,20 @@ export function FlashcardView({ moves }: { moves: Move[] }) {
     if (exitDir) return
     if (dragX < -THRESHOLD) advance('left')
     else if (dragX > THRESHOLD) advance('right')
-    else setDragX(0)
-    setDragging(false)
+    else { setDragX(0); setDragging(false) }
   }
 
-  // Active card transform
+  // Active card transform + transition
   let activeTransform: string
   let activeTransition: string
+
   if (exitDir === 'left') {
-    activeTransform = 'translateX(-130vw) rotate(-20deg)'
-    activeTransition = 'transform 0.35s ease-in'
+    activeTransform = 'translateX(-130vw) rotate(-22deg)'
+    activeTransition = 'transform 0.32s ease-in'
   } else if (exitDir === 'right') {
-    activeTransform = 'translateX(130vw) rotate(20deg)'
-    activeTransition = 'transform 0.35s ease-in'
-  } else if (dragging) {
+    activeTransform = 'translateX(130vw) rotate(22deg)'
+    activeTransition = 'transform 0.32s ease-in'
+  } else if (dragging || skipTransition) {
     activeTransform = `translateX(${dragX}px) rotate(${dragX * 0.033}deg)`
     activeTransition = 'none'
   } else {
@@ -92,7 +110,7 @@ export function FlashcardView({ moves }: { moves: Move[] }) {
 
   return (
     <div className="relative select-none" style={{ height: 'calc(100dvh - 12rem)' }}>
-      {/* Card revealed underneath — scales up as top card flies off */}
+      {/* Card underneath — grows into place as top card is swiped */}
       {behind && (() => {
         const { from: bf, to: bt } = getMoveGradient(behind.name)
         return (
@@ -101,9 +119,9 @@ export function FlashcardView({ moves }: { moves: Move[] }) {
             className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none"
             style={{
               background: `linear-gradient(135deg, ${bf}, ${bt})`,
-              transform: exitDir ? 'scale(1)' : 'scale(0.93)',
-              opacity: exitDir ? 1 : 0.55,
-              transition: exitDir ? 'transform 0.35s ease-in, opacity 0.35s ease-in' : 'none',
+              transform: `scale(${behindScale})`,
+              opacity: behindOpacity,
+              transition: exitDir ? 'transform 0.32s ease-in, opacity 0.32s ease-in' : 'none',
             }}
           >
             {behind.thumbnail && (
@@ -149,7 +167,7 @@ export function FlashcardView({ moves }: { moves: Move[] }) {
         </Link>
       </div>
 
-      {/* Counter + nav buttons */}
+      {/* Counter + nav */}
       <div className="absolute -bottom-9 left-0 right-0 flex items-center justify-between px-1">
         <button
           onClick={() => advance('right')}
