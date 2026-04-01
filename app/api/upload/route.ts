@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
   const timestamp = Math.floor(Date.now() / 1000)
   const folder = 'jackbook/avatars'
 
-  // Sign: folder=...&timestamp=...&upload_preset=... + secret
+  // Signature must include ALL upload params (alphabetical) except file/api_key/resource_type
   const crypto = await import('crypto')
   const sigString = `folder=${folder}&timestamp=${timestamp}${apiSecret}`
   const signature = crypto.createHash('sha1').update(sigString).digest('hex')
@@ -35,7 +35,6 @@ export async function POST(request: NextRequest) {
   body.append('timestamp', String(timestamp))
   body.append('signature', signature)
   body.append('folder', folder)
-  body.append('transformation', 'c_fill,g_face,w_400,h_400,q_auto,f_auto')
 
   const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
     method: 'POST',
