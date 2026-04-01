@@ -78,10 +78,11 @@ export function MoveListClient({ moves }: MoveListClientProps) {
 
   const rawView = searchParams.get('view')
   const viewMode = (
+    !isMobile ? (rawView === 'list' ? 'list' : 'grid') :
     rawView === 'list' ? 'list' :
     rawView === 'flash' ? 'flash' :
     rawView === 'grid' ? 'grid' :
-    isMobile ? 'flash' : 'grid'
+    'flash'
   ) as 'grid' | 'list' | 'flash'
 
   function setStyle(style: string) {
@@ -192,13 +193,15 @@ export function MoveListClient({ moves }: MoveListClientProps) {
               <span className="text-xs">{sortAsc ? 'A–Z' : 'Z–A'}</span>
             </Button>
             <div className="w-px h-4 bg-zinc-800 mx-1" />
-            <button
-              onClick={() => setViewMode('flash')}
-              className={`p-1.5 rounded transition-colors ${viewMode === 'flash' ? 'text-zinc-200' : 'text-zinc-600 hover:text-zinc-400'}`}
-              title="Flashcard view"
-            >
-              <Layers className="h-3.5 w-3.5" />
-            </button>
+            {isMobile && (
+              <button
+                onClick={() => setViewMode('flash')}
+                className={`p-1.5 rounded transition-colors ${viewMode === 'flash' ? 'text-zinc-200' : 'text-zinc-600 hover:text-zinc-400'}`}
+                title="Flashcard view"
+              >
+                <Layers className="h-3.5 w-3.5" />
+              </button>
+            )}
             <button
               onClick={() => setViewMode('grid')}
               className={`p-1.5 rounded transition-colors ${viewMode === 'grid' ? 'text-zinc-200' : 'text-zinc-600 hover:text-zinc-400'}`}
