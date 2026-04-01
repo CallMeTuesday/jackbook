@@ -8,9 +8,10 @@ import { getMoveGradient } from '@/lib/moveColor'
 import { MoveCard } from './MoveCard'
 import { VideoCard } from './VideoCard'
 import { Button } from '@/components/ui/button'
-import { ArrowUpAZ, ArrowDownAZ, Search, LayoutGrid, List } from 'lucide-react'
+import { ArrowUpAZ, ArrowDownAZ, Search, LayoutGrid, List, Layers } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { YouTubeVideo } from '@/lib/youtube'
+import { FlashcardView } from './FlashcardView'
 
 const STYLES = [
   { key: 'house', label: 'House' },
@@ -68,7 +69,20 @@ export function MoveListClient({ moves }: MoveListClientProps) {
 
   const activeStyle = searchParams.get('style') ?? 'house'
   const externalSearch = searchParams.get('q') ?? ''
-  const viewMode = (searchParams.get('view') === 'list' ? 'list' : 'grid') as 'grid' | 'list'
+
+  // On mobile with no explicit view param, default to flashcard view
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768)
+  }, [])
+
+  const rawView = searchParams.get('view')
+  const viewMode = (
+    rawView === 'list' ? 'list' :
+    rawView === 'flash' ? 'flash' :
+    rawView === 'grid' ? 'grid' :
+    isMobile ? 'flash' : 'grid'
+  ) as 'grid' | 'list' | 'flash'
 
   function setStyle(style: string) {
     const params = new URLSearchParams(searchParams.toString())
@@ -82,9 +96,11 @@ export function MoveListClient({ moves }: MoveListClientProps) {
     router.push(params.toString() ? `/?${params.toString()}` : '/')
   }
 
-  function setViewMode(mode: 'grid' | 'list') {
+  function setViewMode(mode: 'grid' | 'list' | 'flash') {
     const params = new URLSearchParams(searchParams.toString())
-    mode === 'list' ? params.set('view', 'list') : params.delete('view')
+    if (mode === 'list') params.set('view', 'list')
+    else if (mode === 'flash') params.set('view', 'flash')
+    else params.delete('view')
     router.replace(`/?${params.toString()}`, { scroll: false })
   }
 
@@ -177,6 +193,13 @@ export function MoveListClient({ moves }: MoveListClientProps) {
             </Button>
             <div className="w-px h-4 bg-zinc-800 mx-1" />
             <button
+              onClick={() => setViewMode('flash')}
+              className={`p-1.5 rounded transition-colors ${viewMode === 'flash' ? 'text-zinc-200' : 'text-zinc-600 hover:text-zinc-400'}`}
+              title="Flashcard view"
+            >
+              <Layers className="h-3.5 w-3.5" />
+            </button>
+            <button
               onClick={() => setViewMode('grid')}
               className={`p-1.5 rounded transition-colors ${viewMode === 'grid' ? 'text-zinc-200' : 'text-zinc-600 hover:text-zinc-400'}`}
               title="Grid view"
@@ -193,7 +216,9 @@ export function MoveListClient({ moves }: MoveListClientProps) {
           </div>
         </div>
 
-        {viewMode === 'grid' ? (
+        {viewMode === 'flash' ? (
+          <FlashcardView moves={filtered} />
+        ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-2 gap-3">
             {filtered.map((move) => (
               <MoveCard
