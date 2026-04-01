@@ -7,7 +7,7 @@ export async function PATCH(request: NextRequest) {
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json()
-  const { name, pronouns, bio, image, username } = body
+  const { name, pronouns, bio, image, username, profilePublic } = body
 
   const data: Record<string, unknown> = {}
 
@@ -15,6 +15,7 @@ export async function PATCH(request: NextRequest) {
   if (pronouns !== undefined) data.pronouns = String(pronouns).trim().slice(0, 40) || null
   if (bio !== undefined) data.bio = String(bio).trim().slice(0, 200) || null
   if (image !== undefined) data.image = String(image).trim() || null
+  if (profilePublic !== undefined) data.profilePublic = Boolean(profilePublic)
 
   if (username !== undefined) {
     const clean = String(username).trim().toLowerCase().replace(/[^a-z0-9_-]/g, '')
@@ -35,7 +36,7 @@ export async function PATCH(request: NextRequest) {
   const user = await prisma.user.update({
     where: { id: session.user.id },
     data,
-    select: { name: true, pronouns: true, bio: true, image: true, username: true },
+    select: { name: true, pronouns: true, bio: true, image: true, username: true, profilePublic: true },
   })
 
   return NextResponse.json({ user })

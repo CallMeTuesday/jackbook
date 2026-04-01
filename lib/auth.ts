@@ -64,12 +64,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         })
         token.sub = dbUser.id
         token.email = email
+        token.username = dbUser.username
       }
       return token
     },
     async session({ session, token }) {
       if (session.user && token.sub) {
         session.user.id = token.sub
+        session.user.username = token.username as string | null ?? null
       }
       return session
     },

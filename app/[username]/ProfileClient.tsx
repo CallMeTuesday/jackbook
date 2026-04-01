@@ -44,6 +44,7 @@ interface ProfileData {
   followingCount: number
   isFollowing: boolean
   isOwn: boolean
+  profilePublic: boolean
 }
 
 interface Props {
@@ -257,7 +258,7 @@ export function ProfileClient({ profile: initial, freeVideos, premiumVideos, sav
 
       {editOpen && (
         <EditProfileModal
-          profile={{ name: profile.name, username: profile.username, pronouns: profile.pronouns, bio: profile.bio, image: profile.image }}
+          profile={{ name: profile.name, username: profile.username, pronouns: profile.pronouns, bio: profile.bio, image: profile.image, profilePublic: profile.profilePublic }}
           onClose={() => setEditOpen(false)}
           onSave={handleProfileSave}
         />

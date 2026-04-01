@@ -75,6 +75,7 @@ export default async function ProfilePage({ params }: Props) {
         image: user.image,
         pronouns: user.pronouns ?? null,
         bio: user.bio ?? null,
+        profilePublic: user.profilePublic,
         videoCount: user.submissions.length,
         followerCount: user._count.followers,
         followingCount: user._count.following,

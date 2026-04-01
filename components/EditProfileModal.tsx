@@ -10,6 +10,7 @@ interface ProfileData {
   pronouns: string | null
   bio: string | null
   image: string | null
+  profilePublic: boolean
 }
 
 interface Props {
@@ -24,6 +25,7 @@ export function EditProfileModal({ profile, onClose, onSave }: Props) {
   const [pronouns, setPronouns] = useState(profile.pronouns ?? '')
   const [bio, setBio] = useState(profile.bio ?? '')
   const [image, setImage] = useState(profile.image ?? '')
+  const [profilePublic, setProfilePublic] = useState(profile.profilePublic)
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -50,7 +52,7 @@ export function EditProfileModal({ profile, onClose, onSave }: Props) {
     const res = await fetch('/api/me/profile', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, username, pronouns, bio, image }),
+      body: JSON.stringify({ name, username, pronouns, bio, image, profilePublic }),
     })
     const data = await res.json()
     setSaving(false)
@@ -148,6 +150,21 @@ export function EditProfileModal({ profile, onClose, onSave }: Props) {
                 className="w-full px-3 py-2 rounded-md bg-zinc-800 border border-zinc-700 text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500 resize-none"
               />
             </div>
+          </div>
+
+          <div className="flex items-center justify-between py-2 border-t border-zinc-800">
+            <div>
+              <p className="text-sm text-zinc-300">Public profile</p>
+              <p className="text-xs text-zinc-600">Others can view your profile</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setProfilePublic((v) => !v)}
+              aria-label="Toggle public profile"
+              className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors ${profilePublic ? 'bg-violet-600' : 'bg-zinc-700'}`}
+            >
+              <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${profilePublic ? 'translate-x-5' : 'translate-x-0'}`} />
+            </button>
           </div>
 
           {error && <p className="text-sm text-red-400">{error}</p>}

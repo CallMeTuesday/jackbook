@@ -80,11 +80,13 @@ export function Navbar() {
             <DropdownMenuItem className="text-zinc-400 text-xs pointer-events-none">
               {session.user?.name}
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/settings" className="text-zinc-300 hover:text-white cursor-pointer">
-                Settings
-              </Link>
-            </DropdownMenuItem>
+            {session.user?.username && (
+              <DropdownMenuItem asChild>
+                <Link href={`/${session.user.username}`} className="text-zinc-300 hover:text-white cursor-pointer">
+                  Profile
+                </Link>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem
               onClick={() => signOut({ callbackUrl: '/' })}
               className="text-zinc-300 hover:text-white cursor-pointer"
