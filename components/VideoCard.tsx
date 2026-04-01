@@ -52,7 +52,7 @@ export function VideoCard({ video, moveId, moveName, initialSaved = false, onRem
       <div className="relative w-full aspect-video bg-zinc-900 rounded-lg overflow-hidden mb-3">
         {playing ? (
           <iframe
-            src={`https://www.youtube.com/embed/${video.videoId}?autoplay=1`}
+            src={`https://www.youtube.com/embed/${video.videoId}?autoplay=1&playsinline=1`}
             title={video.title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen

@@ -109,7 +109,9 @@ export function FlashcardView({ moves }: { moves: Move[] }) {
   const { from, to } = getMoveGradient(card.name)
 
   return (
-    <div className="relative select-none" style={{ height: 'calc(100dvh - 12rem)' }}>
+    <div className="select-none" style={{ height: 'calc(100dvh - 12rem)' }}>
+      {/* Clipping wrapper — prevents rotating card from rendering outside viewport */}
+      <div className="relative overflow-hidden rounded-2xl w-full h-full">
       {/* Card underneath — grows into place as top card is swiped */}
       {behind && (() => {
         const { from: bf, to: bt } = getMoveGradient(behind.name)
@@ -167,8 +169,10 @@ export function FlashcardView({ moves }: { moves: Move[] }) {
         </Link>
       </div>
 
+      </div>{/* end clipping wrapper */}
+
       {/* Counter + nav */}
-      <div className="absolute -bottom-9 left-0 right-0 flex items-center justify-between px-1">
+      <div className="flex items-center justify-between px-1 mt-2">
         <button
           onClick={() => advance('right')}
           disabled={i === 0}
