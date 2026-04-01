@@ -17,14 +17,14 @@ const THRESHOLD = 72
 
 export function FlashcardView({ moves }: { moves: Move[] }) {
   const [index, setIndex] = useState(0)
+  const [cardKey, setCardKey] = useState(0)
   const [dragX, setDragX] = useState(0)
   const [dragging, setDragging] = useState(false)
   const [exitDir, setExitDir] = useState<'left' | 'right' | null>(null)
   const startX = useRef(0)
   const didDrag = useRef(false)
-  const cardRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => { setIndex(0) }, [moves])
+  useEffect(() => { setIndex(0); setCardKey(0) }, [moves])
 
   if (moves.length === 0) {
     return <p className="text-zinc-500 text-sm text-center py-12">No moves found.</p>
@@ -50,27 +50,14 @@ export function FlashcardView({ moves }: { moves: Move[] }) {
 
   function onTransitionEnd() {
     if (!exitDir) return
-    const el = cardRef.current
-    if (el) {
-      // Synchronously reset the card position with no transition before React
-      // re-renders with the new card. Forces a reflow so the browser commits
-      // the reset state — this is the cross-browser reliable approach.
-      el.style.transition = 'none'
-      el.style.transform = 'translateX(0) rotate(0deg)'
-      void el.offsetWidth // force reflow
-    }
-    const nextIndex = exitDir === 'left' ? i + 1 : i - 1
-    setIndex(nextIndex)
+    // Increment cardKey to force a brand-new DOM element for the next card.
+    // This guarantees no stale transform/transition state — the new element
+    // starts fresh at translateX(0), cross-browser reliable.
+    setCardKey((k) => k + 1)
+    setIndex(exitDir === 'left' ? i + 1 : i - 1)
     setExitDir(null)
     setDragX(0)
     setDragging(false)
-    // Re-enable React-driven transitions next frame
-    requestAnimationFrame(() => {
-      if (el) {
-        el.style.transition = ''
-        el.style.transform = ''
-      }
-    })
   }
 
   function onTouchStart(e: React.TouchEvent) {
@@ -140,7 +127,7 @@ export function FlashcardView({ moves }: { moves: Move[] }) {
         })()}
 
         <div
-          ref={cardRef}
+          key={cardKey}
           className="absolute inset-0 rounded-2xl overflow-hidden"
           style={{
             background: `linear-gradient(135deg, ${from}, ${to})`,
