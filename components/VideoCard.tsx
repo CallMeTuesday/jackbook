@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Play, Bookmark, Trash2 } from 'lucide-react'
 import { YouTubeVideo } from '@/lib/youtube'
@@ -17,13 +17,14 @@ interface VideoCardProps {
 export function VideoCard({ video, moveId, moveName, initialSaved = false, onRemove }: VideoCardProps) {
   const { data: session } = useSession()
   const [playing, setPlaying] = useState(false)
-  const iframeRef = useRef<HTMLIFrameElement>(null)
+  const [isMobile, setIsMobile] = useState(false)
   const [saved, setSaved] = useState(initialSaved)
-
-  useEffect(() => {
-    setSaved(initialSaved)
-  }, [initialSaved])
   const [saving, setSaving] = useState(false)
+
+  useEffect(() => { setSaved(initialSaved) }, [initialSaved])
+  useEffect(() => {
+    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent))
+  }, [])
 
   async function toggleSave() {
     if (!session || !moveId || !moveName) return
@@ -50,33 +51,31 @@ export function VideoCard({ video, moveId, moveName, initialSaved = false, onRem
   return (
     <div className="border-b border-zinc-800 last:border-0 pb-6 last:pb-0">
       <div className="relative w-full aspect-video bg-zinc-900 rounded-lg overflow-hidden mb-3">
-        {/* iframe always in DOM — src set directly on tap to preserve user gesture */}
-        <iframe
-          ref={iframeRef}
-          src=""
-          title={video.title}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          className="absolute inset-0 w-full h-full"
-        />
-        {!playing && (
+        {isMobile ? (
+          // Mobile: render iframe directly — iOS blocks autoplay so our overlay
+          // just adds an extra tap. YouTube's native play button is the one tap needed.
+          <iframe
+            src={`https://www.youtube.com/embed/${video.videoId}?playsinline=1`}
+            title={video.title}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="absolute inset-0 w-full h-full"
+          />
+        ) : playing ? (
+          <iframe
+            src={`https://www.youtube.com/embed/${video.videoId}?autoplay=1&playsinline=1`}
+            title={video.title}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="absolute inset-0 w-full h-full"
+          />
+        ) : (
           <button
             className="absolute inset-0 w-full h-full group"
-            onClick={() => {
-              if (iframeRef.current) {
-                iframeRef.current.src = `https://www.youtube.com/embed/${video.videoId}?autoplay=1&playsinline=1`
-              }
-              setPlaying(true)
-            }}
+            onClick={() => setPlaying(true)}
             aria-label={`Play ${video.title}`}
           >
-            <Image
-              src={video.thumbnail}
-              alt={video.title}
-              fill
-              className="object-cover"
-              sizes="(max-width: 640px) 100vw, 512px"
-            />
+            <Image src={video.thumbnail} alt={video.title} fill className="object-cover" sizes="(max-width: 640px) 100vw, 512px" />
             <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-colors flex items-center justify-center">
               <div className="bg-black/60 rounded-full p-3 group-hover:scale-110 transition-transform">
                 <Play className="h-7 w-7 text-white fill-white" />
